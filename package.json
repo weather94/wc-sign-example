@@ -15,6 +15,7 @@
     "antd": "^4.19.4",
     "axios": "^0.26.1",
     "buffer": "^6.0.3",
+    "cosmostation-chrome-extension-client": "^0.0.7",
     "eslint-visitor-keys": "^3.3.0",
     "lodash": "^4.17.21",
     "long": "^5.2.0",

@@ -4135,6 +4135,11 @@ cosmjs-types@^0.4.0:
     long "^4.0.0"
     protobufjs "~6.11.2"
 
+cosmostation-chrome-extension-client@^0.0.7:
+  version "0.0.7"
+  resolved "https://registry.yarnpkg.com/cosmostation-chrome-extension-client/-/cosmostation-chrome-extension-client-0.0.7.tgz#f7045063e871db57e159dbdeda945ec1bad95170"
+  integrity sha512-nFTtjP+4e6NeW9JcXMOZxiHCLBqv4nUYbY5nrLR4NR7n+O560rw8lFVdW4RnOvpaLk9/UVCGOr/tjbRSC08GYg==
+
 create-ecdh@^4.0.0:
   version "4.0.4"
   resolved "https://registry.yarnpkg.com/create-ecdh/-/create-ecdh-4.0.4.tgz#d6e7f4bffa66736085a0762fd3a632684dabcc4e"
