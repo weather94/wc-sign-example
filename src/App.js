@@ -5,11 +5,15 @@ import { Button, Typography } from 'antd';
 import { useCallback, useState } from 'react';
 import _ from 'lodash';
 
+import { isInstalled } from 'cosmostation-chrome-extension-client';
+import { requestAccount, signAmino, addChain, supportedChainNames } from 'cosmostation-chrome-extension-client/tendermint';
+
 import keplrWalletConnect from './keplr-wallet-connect';
 import axios from 'axios';
 import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
 import { cosmos, google } from './cosmos-v0.44.5';
 import Long from 'long';
+
 
 const { Title, Text } = Typography;
 
@@ -18,6 +22,9 @@ const LCD_ENDPOINT = 'https://lcd-office.cosmostation.io/mooncat-1-1';
 const TO_ADDRESS = 'cre1x5wgh6vwye60wv3dtshs9dmqggwfx2ldhgluez';
 const DENOM = 'ucre';
 const EXPLORER_LINK = 'https://testnet.mintscan.io/crescent/txs';
+
+const CHAIN_NAME = 'crescent';
+const DISPLAY_DENOM = 'CRE';
 
 // const CHAIN_ID = 'osmosis-1';
 // const LCD_ENDPOINT = 'https://lcd-osmosis-app.cosmostation.io';
@@ -139,6 +146,8 @@ function App() {
   const [account, setAccount] = useState();
   const [lastTxHash, setLastTxHash] = useState();
 
+  
+
   const connect = useCallback(() => {
     keplrWalletConnect.connect()
       .then((connector) => {
@@ -228,6 +237,83 @@ function App() {
     }
   }, [connector, account]);
 
+  const [extensionConnected, setExtensionConnected] = useState(false);
+  const [extensionAddress, setExtensionAddress] = useState('');
+  const [extensionLastTxHash, setExtensionLastTxHash] = useState();
+
+  const extensionConnect = useCallback(() => {
+    setExtensionConnected(isInstalled());
+  }, []);
+
+  const getExtensionAccounts = useCallback( async () => {
+    if(isInstalled()) {
+      try {
+        const supportedChains = await supportedChainNames();
+
+        if(![...supportedChains.official, ...supportedChains.unofficial].includes(CHAIN_NAME)) {
+          await addChain({
+            chainId: CHAIN_ID,
+            chainName: CHAIN_NAME,
+            addressPrefix:'cre',
+            baseDenom: DENOM,
+            displayDenom: DISPLAY_DENOM,
+            restURL: 'https://lcd-office.cosmostation.io/mooncat-1-1',
+          })
+        }
+
+        const accountInfo = await requestAccount(CHAIN_NAME);
+
+        setExtensionAddress(accountInfo.address)
+
+      } catch(e) {
+        console.log(e);
+      }
+    }
+  }, []);
+
+  const extensionSend = useCallback(async () => {
+    if (extensionAddress) {
+      const address = extensionAddress;
+      const url = `${LCD_ENDPOINT}/cosmos/auth/v1beta1/accounts/${address}`;
+      axios.get(url).then((response) => {
+        console.log('response:', response);
+        const accountNumber = _.get(response, 'data.account.account_number');
+        const sequence = _.get(response, 'data.account.sequence');
+        console.log('account number:', accountNumber, 'sequence:', sequence);
+
+        const message = makeAminoSendMessage(address, TO_ADDRESS, '100');
+        const fee = {
+          amount: [
+            { denom: DENOM, amount: '0' }
+          ],
+          gas: '80000'
+        };
+        console.log('message:', message, 'fee:', fee);
+        const signDoc = makeAminoSignDoc([message], fee, CHAIN_ID, '', accountNumber, sequence);
+
+        signAmino(CHAIN_NAME, signDoc)
+          .then((response) => {
+            console.log(response);
+            const signed = response.signed_doc;
+            const signature = response.signature;
+            const pub_key = response.pub_key
+            return broadcastTx(signed, { signature, pub_key });
+          }).then((result) => {
+            const code = _.get(result, 'code');
+            if (code === 0) {
+              const txHash = _.get(result, 'txhash');
+              setExtensionLastTxHash(txHash);
+            } else {
+              const rawLog = _.get(result, 'raw_log');
+              console.error(rawLog);
+              alert(rawLog);
+              setExtensionLastTxHash();
+            }
+          })
+      })
+    }
+  }, [extensionAddress]);
+
   return (
     <div className="App">
       <header className="App-header">
@@ -263,7 +349,31 @@ function App() {
             Check TX on Mintscan: {lastTxHash}
           </a>
         }
+
+        <Title level={3}>Cosmostation Crescent Wallet Extension Connect</Title>
+        { extensionConnected
+          ? <Button type="primary" onClick={extensionConnect} disabled>Connected!</Button>
+          : <Button type="primary" onClick={extensionConnect}>Connect</Button>
+        }
+        <br/>
+        { extensionConnected &&
+          <Button type="primary" onClick={getExtensionAccounts}>Get Account</Button>
+        }
+        { extensionAddress &&
+          <p>
+            <Text code>Address: {extensionAddress}</Text><br/>
+          </p>
+        }
+        { extensionAddress &&
+          <Button type="primary" onClick={extensionSend}>Send</Button>
+        }
+        { extensionLastTxHash &&
+          <a target="_blank" rel="noopener noreferrer" href={`${EXPLORER_LINK}/${extensionLastTxHash}`}>
+            Check TX on Mintscan: {extensionLastTxHash}
+          </a>
+        }
       </header>
+
     </div>
   );
 }
