@@ -17,7 +17,7 @@ const CHAIN_ID = 'mooncat-1-1';
 const LCD_ENDPOINT = 'https://lcd-office.cosmostation.io/mooncat-1-1';
 const TO_ADDRESS = 'cre1x5wgh6vwye60wv3dtshs9dmqggwfx2ldhgluez';
 const DENOM = 'ucre';
-const EXPLORER_LINK = 'testnet.mintscan.io/crescent/txs';
+const EXPLORER_LINK = 'https://testnet.mintscan.io/crescent/txs';
 
 // const CHAIN_ID = 'osmosis-1';
 // const LCD_ENDPOINT = 'https://lcd-osmosis-app.cosmostation.io';
