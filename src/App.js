@@ -1,18 +1,18 @@
 import './App.css';
 import 'antd/dist/antd.css';
 
-import { Button, Typography } from 'antd';
-import { useCallback, useState } from 'react';
-import _ from 'lodash';
-
-import { isInstalled } from 'cosmostation-chrome-extension-client';
-import { requestAccount, signAmino, addChain, supportedChainNames } from 'cosmostation-chrome-extension-client/tendermint';
-
-import keplrWalletConnect from './keplr-wallet-connect';
-import axios from 'axios';
 import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
-import { cosmos, google } from './cosmos-v0.44.5';
+import { isMobile } from '@walletconnect/browser-utils';
+import { Button, Typography } from 'antd';
+import axios from 'axios';
+import { isInstalled } from 'cosmostation-chrome-extension-client';
+import { addChain, requestAccount, signAmino, supportedChainNames } from 'cosmostation-chrome-extension-client/tendermint';
+import _ from 'lodash';
 import Long from 'long';
+import { useCallback, useState } from 'react';
+
+import { cosmos, google } from './cosmos-v0.44.5';
+import keplrWalletConnect from './keplr-wallet-connect';
 
 
 const { Title, Text } = Typography;
@@ -22,7 +22,6 @@ const LCD_ENDPOINT = 'https://lcd-office.cosmostation.io/mooncat-1-1';
 const TO_ADDRESS = 'cre1x5wgh6vwye60wv3dtshs9dmqggwfx2ldhgluez';
 const DENOM = 'ucre';
 const EXPLORER_LINK = 'https://testnet.mintscan.io/crescent/txs';
-
 const CHAIN_NAME = 'crescent';
 const DISPLAY_DENOM = 'CRE';
 
@@ -145,12 +144,12 @@ function App() {
   const [enabled, setEnabled] = useState(false);
   const [account, setAccount] = useState();
   const [lastTxHash, setLastTxHash] = useState();
-
-  
+  const [checkMobile] = useState(() => isMobile());
 
   const connect = useCallback(() => {
     keplrWalletConnect.connect()
       .then((connector) => {
+        console.log('connector:', connector);
         setConnector(connector);
         setConnected(true);
       }).catch((error) => {
@@ -350,27 +349,31 @@ function App() {
           </a>
         }
 
-        <Title level={3}>Cosmostation Crescent Wallet Extension Connect</Title>
-        { extensionConnected
-          ? <Button type="primary" onClick={extensionConnect} disabled>Connected!</Button>
-          : <Button type="primary" onClick={extensionConnect}>Connect</Button>
-        }
-        <br/>
-        { extensionConnected &&
-          <Button type="primary" onClick={getExtensionAccounts}>Get Account</Button>
-        }
-        { extensionAddress &&
-          <p>
-            <Text code>Address: {extensionAddress}</Text><br/>
-          </p>
-        }
-        { extensionAddress &&
-          <Button type="primary" onClick={extensionSend}>Send</Button>
-        }
-        { extensionLastTxHash &&
-          <a target="_blank" rel="noopener noreferrer" href={`${EXPLORER_LINK}/${extensionLastTxHash}`}>
-            Check TX on Mintscan: {extensionLastTxHash}
-          </a>
+        { !checkMobile &&
+          <div>
+            <Title level={3}>Cosmostation Crescent Wallet Extension Connect</Title>
+            { extensionConnected
+              ? <Button type="primary" onClick={extensionConnect} disabled>Connected!</Button>
+              : <Button type="primary" onClick={extensionConnect}>Connect</Button>
+            }
+            <br/>
+            { extensionConnected &&
+              <Button type="primary" onClick={getExtensionAccounts}>Get Account</Button>
+            }
+            { extensionAddress &&
+              <p>
+                <Text code>Address: {extensionAddress}</Text><br/>
+              </p>
+            }
+            { extensionAddress &&
+              <Button type="primary" onClick={extensionSend}>Send</Button>
+            }
+            { extensionLastTxHash &&
+              <a target="_blank" rel="noopener noreferrer" href={`${EXPLORER_LINK}/${extensionLastTxHash}`}>
+                Check TX on Mintscan: {extensionLastTxHash}
+              </a>
+            }
+          </div>
         }
       </header>
 

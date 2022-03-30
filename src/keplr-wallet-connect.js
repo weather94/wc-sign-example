@@ -1,12 +1,12 @@
 import WalletConnect from '@walletconnect/client';
-import QRCodeModal from '@walletconnect/qrcode-modal';
+import CosmostationQRCodeModal from './modal';
 import { payloadId } from '@walletconnect/utils';
 
 export async function connect() {
   const connector = new WalletConnect({
     bridge: 'https://bridge.walletconnect.org',
     signingMethods: ['keplr_enable_wallet_connect_v1', 'keplr_sign_amino_wallet_connect_v1'],
-    qrcodeModal: QRCodeModal,
+    qrcodeModal: CosmostationQRCodeModal,
   });
 
   if (connector.connected) {
