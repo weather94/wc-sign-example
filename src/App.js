@@ -1,19 +1,18 @@
 import './App.css';
 import 'antd/dist/antd.css';
 
-import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
-import { isMobile } from '@walletconnect/browser-utils';
 import { Button, Typography } from 'antd';
-import axios from 'axios';
-import { isInstalled } from 'cosmostation-chrome-extension-client';
 import { addChain, requestAccount, signAmino, supportedChainNames } from 'cosmostation-chrome-extension-client/tendermint';
-import _ from 'lodash';
-import Long from 'long';
+import { cosmos, google } from './cosmos-v0.44.5';
 import { useCallback, useState } from 'react';
 
-import { cosmos, google } from './cosmos-v0.44.5';
+import Long from 'long';
+import _ from 'lodash';
+import axios from 'axios';
+import { isInstalled } from 'cosmostation-chrome-extension-client';
+import { isMobile } from '@walletconnect/browser-utils';
 import keplrWalletConnect from './keplr-wallet-connect';
-
+import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
 
 const { Title, Text } = Typography;
 
@@ -146,31 +145,29 @@ function App() {
   const [lastTxHash, setLastTxHash] = useState();
   const [checkMobile] = useState(() => isMobile());
 
-  const connect = useCallback(() => {
-    keplrWalletConnect.connect()
-      .then((connector) => {
-        console.log('connector:', connector);
-        setConnector(connector);
-        setConnected(true);
-      }).catch((error) => {
-        console.error(error);
-        alert(error.message);
+  const connect = async () => {
+    const connector = await keplrWalletConnect.connect();
+    setConnector(connector);
+    connector.on("connect", (error, payload) => {
+      if (error) {
         setConnected(false);
-      });
-  }, []);
+        throw error;
+      }
+      setConnected(true);
+    });
+  };
 
-  const debugConnect = useCallback(() => {
-    keplrWalletConnect.debugConnect()
-      .then((connector) => {
-        console.log('connector:', connector);
-        setConnector(connector);
-        setConnected(true);
-      }).catch((error) => {
-        console.error(error);
-        alert(error.message);
+  const debugConnect = async () => {
+    const connector = await keplrWalletConnect.debugConnect();
+    setConnector(connector);
+    connector.on("connect", (error, payload) => {
+      if (error) {
         setConnected(false);
-      });
-  }, []);
+        throw error;
+      }
+      setConnected(true);
+    });
+  };
 
   const enable = useCallback(() => {
     if (connector) {

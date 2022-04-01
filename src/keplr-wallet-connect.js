@@ -1,6 +1,6 @@
-import WalletConnect from '@walletconnect/client';
-import CosmostationQRCodeModal from './modal';
 import CosmostationDebugQRCodeModal from './debug-modal '
+import CosmostationQRCodeModal from './modal';
+import WalletConnect from '@walletconnect/client';
 import { payloadId } from '@walletconnect/utils';
 
 export async function connect() {
@@ -13,7 +13,9 @@ export async function connect() {
   if (connector.connected) {
     await connector.killSession();
   }
+
   await connector.createSession();
+  
   return connector;
 }
 
@@ -27,8 +29,9 @@ export async function debugConnect() {
   if (connector.connected) {
     await connector.killSession();
   }
-  await connector.createSession();
-  return connector;
+  
+  await connector.createSession();  
+  return connector;  
 }
 
 export function getEnableRequest(chainIds) {
