@@ -18,10 +18,10 @@ export function Modal ({ uri, close }) {
       if (checkAndroid) {
         saveMobileLinkInfo({
           name: 'Cosmostation',
-          href: 'intent://wc#Intent;package=wannabit.io.cosmostaion;scheme=cosmostation;end;'
+          href: 'intent://wc#Intent;package=wannabit.io.cosmostaion.debug;scheme=cosmostation;end;'
         });
 
-        return `intent://wc?${uri}#Intent;package=wannabit.io.cosmostaion;scheme=cosmostation;end;`;
+        return `intent://wc?${uri}#Intent;package=wannabit.io.cosmostaion.debug;scheme=cosmostation;end;`;
       } else {
         saveMobileLinkInfo({
           name: 'Cosmostation',

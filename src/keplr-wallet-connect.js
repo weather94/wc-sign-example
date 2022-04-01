@@ -1,5 +1,6 @@
 import WalletConnect from '@walletconnect/client';
 import CosmostationQRCodeModal from './modal';
+import CosmostationDebugQRCodeModal from './debug-modal '
 import { payloadId } from '@walletconnect/utils';
 
 export async function connect() {
@@ -7,6 +8,20 @@ export async function connect() {
     bridge: 'https://bridge.walletconnect.org',
     signingMethods: ['keplr_enable_wallet_connect_v1', 'keplr_sign_amino_wallet_connect_v1'],
     qrcodeModal: CosmostationQRCodeModal,
+  });
+
+  if (connector.connected) {
+    await connector.killSession();
+  }
+  await connector.createSession();
+  return connector;
+}
+
+export async function debugConnect() {
+  const connector = new WalletConnect({
+    bridge: 'https://bridge.walletconnect.org',
+    signingMethods: ['keplr_enable_wallet_connect_v1', 'keplr_sign_amino_wallet_connect_v1'],
+    qrcodeModal: CosmostationDebugQRCodeModal,
   });
 
   if (connector.connected) {
@@ -45,6 +60,7 @@ export function getSignAminoRequest(chainId, signer, signDoc) {
 
 const keplrWalletConnect = {
   connect,
+  debugConnect,
   getEnableRequest,
   getKeyRequest,
   getSignAminoRequest,

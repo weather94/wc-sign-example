@@ -159,6 +159,19 @@ function App() {
       });
   }, []);
 
+  const debugConnect = useCallback(() => {
+    keplrWalletConnect.debugConnect()
+      .then((connector) => {
+        console.log('connector:', connector);
+        setConnector(connector);
+        setConnected(true);
+      }).catch((error) => {
+        console.error(error);
+        alert(error.message);
+        setConnected(false);
+      });
+  }, []);
+
   const enable = useCallback(() => {
     if (connector) {
       const request = keplrWalletConnect.getEnableRequest([CHAIN_ID]);
@@ -319,7 +332,11 @@ function App() {
         <Title level={3}>Cosmostation Crescent Wallet Connect</Title>
         { connected
           ? <Button type="primary" onClick={connect} disabled>Connected!</Button>
-          : <Button type="primary" onClick={connect}>Connect</Button>
+          : <>
+              <Button type="primary" onClick={connect}>Connect</Button>
+              <br />
+              <Button type="primary" onClick={debugConnect}>Debug Connect</Button>
+            </>
         }
         <br/>
         { connected &&
