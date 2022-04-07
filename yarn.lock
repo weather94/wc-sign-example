@@ -1311,6 +1311,11 @@
   resolved "https://registry.yarnpkg.com/@cosmjs/utils/-/utils-0.28.0.tgz#a2fefb68b7e2dddabf27f739a0f51578f7ebb4dc"
   integrity sha512-1Um7h2a20ipbvEw0dzKPHL8qTbH5YY9ND0u5XxlVaCxaYDMTpzjjPiQD+Offxx/28afi8cuHWDbJc45dJXoCAg==
 
+"@cosmostation/extension-client@^0.0.1":
+  version "0.0.1"
+  resolved "https://registry.yarnpkg.com/@cosmostation/extension-client/-/extension-client-0.0.1.tgz#ab21a7d1965e200aec15da061e3e7a329111f631"
+  integrity sha512-C3afNMKdPFXZLK0RQYsx9vqsPQaCloL2OvcZngnhGt6HpEC0XK4wHZKweBMHtReDtCqoAksNdguuN+Qt6F1boQ==
+
 "@csstools/convert-colors@^1.4.0":
   version "1.4.0"
   resolved "https://registry.yarnpkg.com/@csstools/convert-colors/-/convert-colors-1.4.0.tgz#ad495dc41b12e75d588c6db8b9834f08fa131eb7"
@@ -4150,11 +4155,6 @@ cosmjs-types@^0.4.0:
   dependencies:
     long "^4.0.0"
     protobufjs "~6.11.2"
-
-cosmostation-chrome-extension-client@^0.0.7:
-  version "0.0.7"
-  resolved "https://registry.yarnpkg.com/cosmostation-chrome-extension-client/-/cosmostation-chrome-extension-client-0.0.7.tgz#f7045063e871db57e159dbdeda945ec1bad95170"
-  integrity sha512-nFTtjP+4e6NeW9JcXMOZxiHCLBqv4nUYbY5nrLR4NR7n+O560rw8lFVdW4RnOvpaLk9/UVCGOr/tjbRSC08GYg==
 
 create-ecdh@^4.0.0:
   version "4.0.4"
