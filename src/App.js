@@ -2,10 +2,9 @@ import './App.css';
 import 'antd/dist/antd.css';
 
 import { Button, Typography } from 'antd';
+import { InstallError, tendermint } from '@cosmostation/extension-client';
 import { cosmos, google } from './cosmos-v0.44.5';
 import { useCallback, useEffect, useState } from 'react';
-
-import { tendermint, InstallError } from '@cosmostation/extension-client';
 
 import Long from 'long';
 import _ from 'lodash';
@@ -201,6 +200,38 @@ function App() {
     });
   };
 
+  const debugAutoConnect = async () => {
+    const connector = await keplrWalletConnect.debugConnect();
+    setConnector(connector);
+    connector.on("connect", (error, payload) => {
+      if (error) {
+        setConnected(false);
+        throw error;
+      }
+      setConnected(true);
+      const request = keplrWalletConnect.getEnableRequest([CHAIN_ID]);
+      connector.sendCustomRequest(request)
+        .then((response) => {
+          console.log(response);
+          setEnabled(true);
+          const request = keplrWalletConnect.getKeyRequest([CHAIN_ID]);
+          connector.sendCustomRequest(request)
+            .then((accounts) => {
+              const account = _.get(accounts, 0);
+              setAccount(account);
+            }).catch((error) => {
+              console.error(error);
+              alert(error.message);
+              setAccount();
+            });
+        }).catch((error) => {
+          console.error(error);
+          alert(error.message);
+          setEnabled(false);
+        });
+    });
+  };
+
   const enable = useCallback(() => {
     if (connector) {
       const request = keplrWalletConnect.getEnableRequest([CHAIN_ID]);
@@ -371,6 +402,8 @@ function App() {
               <Button type="primary" onClick={connect}>Connect</Button>
               <br />
               <Button type="primary" onClick={debugConnect}>Debug Connect</Button>
+              <br />
+              <Button type="primary" onClick={debugAutoConnect}>Debug Auto Connect</Button>
             </>
         }
         <br/>

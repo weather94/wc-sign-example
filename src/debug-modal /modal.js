@@ -3,12 +3,13 @@ import React, {
   useMemo,
   useState,
 } from 'react';
-import QRCode from 'qrcode.react';
 import {
-  isMobile,
   isAndroid,
+  isMobile,
   saveMobileLinkInfo,
 } from '@walletconnect/browser-utils';
+
+import QRCode from 'qrcode.react';
 
 export function Modal ({ uri, close }) {
   const [checkMobile] = useState(() => isMobile());
@@ -25,7 +26,7 @@ export function Modal ({ uri, close }) {
       } else {
         saveMobileLinkInfo({
           name: 'Cosmostation',
-          href: '"cosmostation://wc"',
+          href: 'cosmostation://wc',
         });
 
         return `cosmostation://wc?${uri}`;

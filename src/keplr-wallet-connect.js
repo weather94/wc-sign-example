@@ -23,7 +23,7 @@ export async function connect() {
 export async function debugConnect() {
   const connector = new WalletConnect({
     bridge: 'https://bridge.walletconnect.org',
-    signingMethods: ['keplr_enable_wallet_connect_v1', 'keplr_sign_amino_wallet_connect_v1'],
+    signingMethods: ['keplr_sign_amino_wallet_connect_v1'],
     qrcodeModal: CosmostationDebugQRCodeModal,
   });
 
