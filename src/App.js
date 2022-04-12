@@ -2,14 +2,14 @@ import './App.css';
 import 'antd/dist/antd.css';
 
 import { Button, Typography } from 'antd';
-import { addChain, requestAccount, signAmino, supportedChainNames } from 'cosmostation-chrome-extension-client/tendermint';
 import { cosmos, google } from './cosmos-v0.44.5';
-import { useCallback, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
+
+import { tendermint, InstallError } from '@cosmostation/extension-client';
 
 import Long from 'long';
 import _ from 'lodash';
 import axios from 'axios';
-import { isInstalled } from 'cosmostation-chrome-extension-client';
 import { isMobile } from '@walletconnect/browser-utils';
 import keplrWalletConnect from './keplr-wallet-connect';
 import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
@@ -29,6 +29,7 @@ const DISPLAY_DENOM = 'CRE';
 // const TO_ADDRESS = 'osmo1ze2ye5u5k3qdlexvt2e0nn0508p0409465lts4';
 // const DENOM = 'uosmo';
 // const EXPLORER_LINK = 'https://www.mintscan.io/osmosis/txs';
+
 
 function getTxBodyBytes (signed) {
   const messages = _.map(signed.msgs, (msg) => convertAminoSendMessageToProto(msg));
@@ -145,6 +146,37 @@ function App() {
   const [lastTxHash, setLastTxHash] = useState();
   const [checkMobile] = useState(() => isMobile());
 
+  useEffect(() => {
+    let event;
+    void (async function async() {
+      try {
+      const provider = await tendermint()
+      event = provider.onAccountChanged(() => console.log('changed'));
+      } catch(e) {
+        if(e instanceof InstallError) {
+          console.log('not installed')
+        } else {
+        console.log('failed')
+        }
+      }
+    })()
+
+    return () => {
+      void (async function async() {
+        try {
+        const provider = await tendermint()
+        provider.offAccountChanged(event)
+        } catch(e) {
+          if(e instanceof InstallError) {
+            console.log('not installed')
+          } else {
+          console.log('failed')
+          }
+        }
+      })()
+    }
+  }, [])
+
   const connect = async () => {
     const connector = await keplrWalletConnect.connect();
     setConnector(connector);
@@ -246,39 +278,45 @@ function App() {
     }
   }, [connector, account]);
 
+  const [extensionConnector, setExtensionConnector] = useState(false);
   const [extensionConnected, setExtensionConnected] = useState(false);
   const [extensionAddress, setExtensionAddress] = useState('');
   const [extensionLastTxHash, setExtensionLastTxHash] = useState();
 
-  const extensionConnect = useCallback(() => {
-    setExtensionConnected(isInstalled());
+  const extensionConnect = useCallback(async () => {
+
+    try {
+      setExtensionConnector(await tendermint())
+      setExtensionConnected(true);
+    } catch {
+
+      setExtensionConnected(false);
+    }
   }, []);
 
   const getExtensionAccounts = useCallback( async () => {
-    if(isInstalled()) {
-      try {
-        const supportedChains = await supportedChainNames();
+    try {
+      const supportedChains = await extensionConnector.getSupportedChains();
 
-        if(![...supportedChains.official, ...supportedChains.unofficial].includes(CHAIN_NAME)) {
-          await addChain({
-            chainId: CHAIN_ID,
-            chainName: CHAIN_NAME,
-            addressPrefix:'cre',
-            baseDenom: DENOM,
-            displayDenom: DISPLAY_DENOM,
-            restURL: 'https://lcd-office.cosmostation.io/mooncat-1-1',
-          })
-        }
-
-        const accountInfo = await requestAccount(CHAIN_NAME);
-
-        setExtensionAddress(accountInfo.address)
-
-      } catch(e) {
-        console.log(e);
+      if(![...supportedChains.official, ...supportedChains.unofficial].includes(CHAIN_NAME)) {
+        await extensionConnector.addChain({
+          chainId: CHAIN_ID,
+          chainName: CHAIN_NAME,
+          addressPrefix:'cre',
+          baseDenom: DENOM,
+          displayDenom: DISPLAY_DENOM,
+          restURL: 'https://lcd-office.cosmostation.io/mooncat-1-1',
+        })
       }
+
+      const accountInfo = await extensionConnector.requestAccount(CHAIN_NAME);
+
+      setExtensionAddress(accountInfo.address)
+
+    } catch(e) {
+      console.log(e);
     }
-  }, []);
+  }, [extensionConnector]);
 
   const extensionSend = useCallback(async () => {
     if (extensionAddress) {
@@ -300,7 +338,7 @@ function App() {
         console.log('message:', message, 'fee:', fee);
         const signDoc = makeAminoSignDoc([message], fee, CHAIN_ID, '', accountNumber, sequence);
 
-        signAmino(CHAIN_NAME, signDoc)
+        extensionConnector.signAmino(CHAIN_NAME, signDoc)
           .then((response) => {
             console.log(response);
             const signed = response.signed_doc;
@@ -321,7 +359,7 @@ function App() {
           })
       })
     }
-  }, [extensionAddress]);
+  }, [extensionAddress, extensionConnector]);
 
   return (
     <div className="App">
