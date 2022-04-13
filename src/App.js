@@ -15,8 +15,8 @@ import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
 
 const { Title, Text } = Typography;
 
-const CHAIN_ID = 'mooncat-1-1';
-const LCD_ENDPOINT = 'https://lcd-office.cosmostation.io/mooncat-1-1';
+const CHAIN_ID = 'crescent-1';
+const LCD_ENDPOINT = 'https://lcd-crescent.cosmostation.io';
 const TO_ADDRESS = 'cre1x5wgh6vwye60wv3dtshs9dmqggwfx2ldhgluez';
 const DENOM = 'ucre';
 const EXPLORER_LINK = 'https://testnet.mintscan.io/crescent/txs';
@@ -336,7 +336,7 @@ function App() {
           addressPrefix:'cre',
           baseDenom: DENOM,
           displayDenom: DISPLAY_DENOM,
-          restURL: 'https://lcd-office.cosmostation.io/mooncat-1-1',
+          restURL: 'https://lcd-crescent.cosmostation.io',
         })
       }
 
