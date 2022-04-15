@@ -23,11 +23,11 @@ const EXPLORER_LINK = 'https://testnet.mintscan.io/crescent/txs';
 const CHAIN_NAME = 'crescent';
 const DISPLAY_DENOM = 'CRE';
 
-// const CHAIN_ID = 'osmosis-1';
-// const LCD_ENDPOINT = 'https://lcd-osmosis-app.cosmostation.io';
-// const TO_ADDRESS = 'osmo1ze2ye5u5k3qdlexvt2e0nn0508p0409465lts4';
-// const DENOM = 'uosmo';
-// const EXPLORER_LINK = 'https://www.mintscan.io/osmosis/txs';
+const OSMO_CHAIN_ID = 'osmosis-1';
+const OSMO_LCD_ENDPOINT = 'https://lcd-osmosis-app.cosmostation.io';
+const OSMO_TO_ADDRESS = 'osmo1ze2ye5u5k3qdlexvt2e0nn0508p0409465lts4';
+const OSMO_DENOM = 'uosmo';
+const OSMO_EXPLORER_LINK = 'https://www.mintscan.io/osmosis/txs';
 
 
 function getTxBodyBytes (signed) {
@@ -141,6 +141,7 @@ function App() {
   const [connector, setConnector] = useState();
   const [connected, setConnected] = useState();
   const [account, setAccount] = useState();
+  const [osmoAccount, setOsmoAccount] = useState();
   const [lastTxHash, setLastTxHash] = useState();
   const [checkMobile] = useState(() => isMobile());
 
@@ -185,6 +186,9 @@ function App() {
       }
       setConnected(true);
     });
+    connector.on("disconnect", (error, payload) => {
+      setConnected(false);
+    });
   };
 
   const debugConnect = async () => {
@@ -197,6 +201,9 @@ function App() {
       }
       setConnected(true);
     });
+    connector.on("disconnect", (error, payload) => {
+      setConnected(false);
+    });
   };
 
   const getAccounts = useCallback(() => {
@@ -206,6 +213,21 @@ function App() {
         .then((accounts) => {
           const account = _.get(accounts, 0);
           setAccount(account);
+        }).catch((error) => {
+          console.error(error);
+          alert(error.message);
+          setAccount();
+        });
+    }
+  }, [connector]);
+
+  const getMultiAccounts = useCallback(() => {
+    if (connector) {
+      const request = cosmostationWalletConnect.getKeyRequest([CHAIN_ID, OSMO_CHAIN_ID]);
+      connector.sendCustomRequest(request)
+        .then((accounts) => {
+          setOsmoAccount(_.get(accounts, 0));
+          setAccount(_.get(accounts, 1));
         }).catch((error) => {
           console.error(error);
           alert(error.message);
@@ -260,6 +282,55 @@ function App() {
       })
     }
   }, [connector, account]);
+
+
+
+  const sendOsmo = useCallback(() => {
+    const address = _.get(osmoAccount, 'bech32Address');
+    if (address) {
+      const url = `${OSMO_LCD_ENDPOINT}/cosmos/auth/v1beta1/accounts/${address}`;
+      axios.get(url).then((response) => {
+        console.log('response:', response);
+        const accountNumber = _.get(response, 'data.account.account_number');
+        const sequence = _.get(response, 'data.account.sequence');
+        console.log('account number:', accountNumber, 'sequence:', sequence);
+
+        const message = makeAminoSendMessage(address, OSMO_TO_ADDRESS, '100');
+        const fee = {
+          amount: [
+            { denom: DENOM, amount: '0' }
+          ],
+          gas: '80000'
+        };
+        console.log('message:', message, 'fee:', fee);
+        const signDoc = makeAminoSignDoc([message], fee, OSMO_CHAIN_ID, '', accountNumber, sequence);
+        const request = cosmostationWalletConnect.getSignAminoRequest(
+          OSMO_CHAIN_ID,
+          address,
+          signDoc,
+        );
+
+        connector.sendCustomRequest(request)
+          .then((response) => {
+            console.log(response);
+            const signed = _.get(response, '0.signed');
+            const signature = _.get(response, '0.signature');
+            return broadcastTx(signed, signature);
+          }).then((result) => {
+            const code = _.get(result, 'code');
+            if (code === 0) {
+              const txHash = _.get(result, 'txhash');
+              setLastTxHash(txHash);
+            } else {
+              const rawLog = _.get(result, 'raw_log');
+              console.error(rawLog);
+              alert(rawLog);
+              setLastTxHash();
+            }
+          })
+      })
+    }
+  }, [connector, osmoAccount]);
 
   const [extensionConnector, setExtensionConnector] = useState(false);
   const [extensionConnected, setExtensionConnected] = useState(false);
@@ -360,14 +431,27 @@ function App() {
         { connected &&
           <Button type="primary" onClick={getAccounts}>Get Account</Button>
         }
+        <br/>
+        { connected &&
+          <Button type="primary" onClick={getMultiAccounts}>Get Multi Account</Button>
+        }
         { account &&
           <p>
             <Text code>Name: {_.get(account, 'name')}</Text><br/>
             <Text code>Address: {_.get(account, 'bech32Address')}</Text><br/>
           </p>
         }
+        { osmoAccount &&
+          <p>
+            <Text code>Name: {_.get(osmoAccount, 'name')}</Text><br/>
+            <Text code>Address: {_.get(osmoAccount, 'bech32Address')}</Text><br/>
+          </p>
+        }
         { account &&
-          <Button type="primary" onClick={send}>Send</Button>
+          <p>
+            <Button type="primary" onClick={send}>Send</Button><br/>
+            <Button type="primary" onClick={sendOsmo}>Send Osmo</Button>
+          </p>
         }
         { lastTxHash &&
           <a target="_blank" rel="noopener noreferrer" href={`${EXPLORER_LINK}/${lastTxHash}`}>
