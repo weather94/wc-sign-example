@@ -9,8 +9,8 @@ import { useCallback, useEffect, useState } from 'react';
 import Long from 'long';
 import _ from 'lodash';
 import axios from 'axios';
+import cosmostationWalletConnect from './cosmostation-wallet-connect';
 import { isMobile } from '@walletconnect/browser-utils';
-import keplrWalletConnect from './keplr-wallet-connect';
 import { makeSignDoc as makeAminoSignDoc } from '@cosmjs/amino';
 
 const { Title, Text } = Typography;
@@ -140,7 +140,6 @@ function convertAminoSendMessageToProto (sendMessage) {
 function App() {
   const [connector, setConnector] = useState();
   const [connected, setConnected] = useState();
-  const [enabled, setEnabled] = useState(false);
   const [account, setAccount] = useState();
   const [lastTxHash, setLastTxHash] = useState();
   const [checkMobile] = useState(() => isMobile());
@@ -177,7 +176,7 @@ function App() {
   }, [])
 
   const connect = async () => {
-    const connector = await keplrWalletConnect.connect();
+    const connector = await cosmostationWalletConnect.connect();
     setConnector(connector);
     connector.on("connect", (error, payload) => {
       if (error) {
@@ -189,7 +188,7 @@ function App() {
   };
 
   const debugConnect = async () => {
-    const connector = await keplrWalletConnect.debugConnect();
+    const connector = await cosmostationWalletConnect.connect(true);
     setConnector(connector);
     connector.on("connect", (error, payload) => {
       if (error) {
@@ -199,57 +198,10 @@ function App() {
       setConnected(true);
     });
   };
-
-  const debugAutoConnect = async () => {
-    const connector = await keplrWalletConnect.debugConnect();
-    setConnector(connector);
-    connector.on("connect", (error, payload) => {
-      if (error) {
-        setConnected(false);
-        throw error;
-      }
-      setConnected(true);
-      const request = keplrWalletConnect.getEnableRequest([CHAIN_ID]);
-      connector.sendCustomRequest(request)
-        .then((response) => {
-          console.log(response);
-          setEnabled(true);
-          const request = keplrWalletConnect.getKeyRequest([CHAIN_ID]);
-          connector.sendCustomRequest(request)
-            .then((accounts) => {
-              const account = _.get(accounts, 0);
-              setAccount(account);
-            }).catch((error) => {
-              console.error(error);
-              alert(error.message);
-              setAccount();
-            });
-        }).catch((error) => {
-          console.error(error);
-          alert(error.message);
-          setEnabled(false);
-        });
-    });
-  };
-
-  const enable = useCallback(() => {
-    if (connector) {
-      const request = keplrWalletConnect.getEnableRequest([CHAIN_ID]);
-      connector.sendCustomRequest(request)
-        .then((response) => {
-          console.log(response);
-          setEnabled(true);
-        }).catch((error) => {
-          console.error(error);
-          alert(error.message);
-          setEnabled(false);
-        });
-    }
-  }, [connector]);
 
   const getAccounts = useCallback(() => {
     if (connector) {
-      const request = keplrWalletConnect.getKeyRequest([CHAIN_ID]);
+      const request = cosmostationWalletConnect.getKeyRequest([CHAIN_ID]);
       connector.sendCustomRequest(request)
         .then((accounts) => {
           const account = _.get(accounts, 0);
@@ -281,7 +233,7 @@ function App() {
         };
         console.log('message:', message, 'fee:', fee);
         const signDoc = makeAminoSignDoc([message], fee, CHAIN_ID, '', accountNumber, sequence);
-        const request = keplrWalletConnect.getSignAminoRequest(
+        const request = cosmostationWalletConnect.getSignAminoRequest(
           CHAIN_ID,
           address,
           signDoc,
@@ -402,18 +354,7 @@ function App() {
               <Button type="primary" onClick={connect}>Connect</Button>
               <br />
               <Button type="primary" onClick={debugConnect}>Debug Connect</Button>
-              <br />
-              <Button type="primary" onClick={debugAutoConnect}>Debug Auto Connect</Button>
             </>
-        }
-        <br/>
-        { connected &&
-          <>
-            { enabled
-              ? <Button type="primary" onClick={enable} disabled>Enabled!</Button>
-              : <Button type="primary" onClick={enable}>Enable</Button>
-            }
-          </>
         }
         <br/>
         { connected &&
