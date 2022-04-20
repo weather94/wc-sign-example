@@ -11,7 +11,7 @@ export async function connect(debug = false) {
 
   const connector = new WalletConnect({
     bridge: 'https://bridge.walletconnect.org',
-    signingMethods: ['cosmostation_wc_keys_v1', 'cosmostation_wc_sign_amino_v1'],
+    signingMethods: ['cosmostation_wc_accounts_v1', 'cosmostation_wc_sign_tx_v1'],
     qrcodeModal: modal,
   });
 
@@ -24,28 +24,28 @@ export async function connect(debug = false) {
   return connector;
 }
 
-export function getKeyRequest(chainIds) {
+export function getAccountsRequest(chainIds) {
   return {
     id: payloadId(),
     jsonrpc: '2.0',
-    method: 'cosmostation_wc_keys_v1',
+    method: 'cosmostation_wc_accounts_v1',
     params: chainIds,
   };
 }
 
-export function getSignAminoRequest(chainId, signer, signDoc) {
+export function getSignTxRequest(chainId, signer, signDoc) {
   return {
     id: payloadId(),
     jsonrpc: '2.0',
-    method: 'cosmostation_wc_sign_amino_v1',
+    method: 'cosmostation_wc_sign_tx_v1',
     params: [chainId, signer, signDoc],
   };
 }
 
 const cosmostationWalletConnect = {
   connect,
-  getKeyRequest,
-  getSignAminoRequest,
+  getAccountsRequest,
+  getSignTxRequest,
 };
 
 export default cosmostationWalletConnect;

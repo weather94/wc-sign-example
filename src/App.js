@@ -19,7 +19,7 @@ const CHAIN_ID = 'crescent-1';
 const LCD_ENDPOINT = 'https://lcd-crescent.cosmostation.io';
 const TO_ADDRESS = 'cre1x5wgh6vwye60wv3dtshs9dmqggwfx2ldhgluez';
 const DENOM = 'ucre';
-const EXPLORER_LINK = 'https://testnet.mintscan.io/crescent/txs';
+const EXPLORER_LINK = 'https://mintscan.io/crescent/txs';
 const CHAIN_NAME = 'crescent';
 const DISPLAY_DENOM = 'CRE';
 
@@ -208,7 +208,7 @@ function App() {
 
   const getAccounts = useCallback(() => {
     if (connector) {
-      const request = cosmostationWalletConnect.getKeyRequest([CHAIN_ID]);
+      const request = cosmostationWalletConnect.getAccountsRequest([CHAIN_ID]);
       connector.sendCustomRequest(request)
         .then((accounts) => {
           const account = _.get(accounts, 0);
@@ -223,7 +223,7 @@ function App() {
 
   const getMultiAccounts = useCallback(() => {
     if (connector) {
-      const request = cosmostationWalletConnect.getKeyRequest([CHAIN_ID, OSMO_CHAIN_ID]);
+      const request = cosmostationWalletConnect.getAccountsRequest([CHAIN_ID, OSMO_CHAIN_ID]);
       connector.sendCustomRequest(request)
         .then((accounts) => {
           setOsmoAccount(_.get(accounts.filter(account => account.bech32Address.startsWith("osmo")), 0));
@@ -255,7 +255,7 @@ function App() {
         };
         console.log('message:', message, 'fee:', fee);
         const signDoc = makeAminoSignDoc([message], fee, CHAIN_ID, '', accountNumber, sequence);
-        const request = cosmostationWalletConnect.getSignAminoRequest(
+        const request = cosmostationWalletConnect.getSignTxRequest(
           CHAIN_ID,
           address,
           signDoc,
