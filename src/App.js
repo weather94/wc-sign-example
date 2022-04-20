@@ -226,8 +226,8 @@ function App() {
       const request = cosmostationWalletConnect.getKeyRequest([CHAIN_ID, OSMO_CHAIN_ID]);
       connector.sendCustomRequest(request)
         .then((accounts) => {
-          setOsmoAccount(_.get(accounts, 0));
-          setAccount(_.get(accounts, 1));
+          setOsmoAccount(_.get(accounts.filter(account => account.bech32Address.startsWith("osmo")), 0));
+          setAccount(_.get(accounts.filter(account => account.bech32Address.startsWith("cre")), 0));
         }).catch((error) => {
           console.error(error);
           alert(error.message);
