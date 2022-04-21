@@ -1,7 +1,7 @@
-import CosmostationDebugQRCodeModal from './debug-modal '
-import CosmostationQRCodeModal from './modal';
-import WalletConnect from '@walletconnect/client';
-import { payloadId } from '@walletconnect/utils';
+import CosmostationDebugQRCodeModal from "./debug-modal ";
+import CosmostationQRCodeModal from "./modal";
+import WalletConnect from "@walletconnect/client";
+import { payloadId } from "@walletconnect/utils";
 
 export async function connect(debug = false) {
   var modal = CosmostationQRCodeModal;
@@ -10,8 +10,11 @@ export async function connect(debug = false) {
   }
 
   const connector = new WalletConnect({
-    bridge: 'https://bridge.walletconnect.org',
-    signingMethods: ['cosmostation_wc_keys_v1', 'cosmostation_wc_sign_amino_v1'],
+    bridge: "https://bridge.walletconnect.org",
+    signingMethods: [
+      "cosmostation_wc_accounts_v1",
+      "cosmostation_wc_sign_tx_v1",
+    ],
     qrcodeModal: modal,
   });
 
@@ -20,15 +23,15 @@ export async function connect(debug = false) {
   }
 
   await connector.createSession();
-  
+
   return connector;
 }
 
 export function getKeyRequest(chainIds) {
   return {
     id: payloadId(),
-    jsonrpc: '2.0',
-    method: 'cosmostation_wc_keys_v1',
+    jsonrpc: "2.0",
+    method: "cosmostation_wc_accounts_v1",
     params: chainIds,
   };
 }
@@ -36,8 +39,8 @@ export function getKeyRequest(chainIds) {
 export function getSignAminoRequest(chainId, signer, signDoc) {
   return {
     id: payloadId(),
-    jsonrpc: '2.0',
-    method: 'cosmostation_wc_sign_amino_v1',
+    jsonrpc: "2.0",
+    method: "cosmostation_wc_sign_tx_v1",
     params: [chainId, signer, signDoc],
   };
 }
